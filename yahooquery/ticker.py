@@ -1294,6 +1294,7 @@ class Ticker(_YahooFinance):
             df = self._historical_data_to_dataframe(data, params, adj_timezone)
         if adj_ohlc and "adjclose" in df:
             df = self._adjust_ohlc(df)
+
         return df
 
     def _history_1m(self, adj_timezone=True, adj_ohlc=False):
@@ -1318,7 +1319,9 @@ class Ticker(_YahooFinance):
     def _historical_data_to_dataframe(self, data, params, adj_timezone):
         d = {}
         for symbol in self._symbols:
-            if "timestamp" in data[symbol]:
+            if symbol not in data.keys():
+                pass
+            elif "timestamp" in data[symbol]:
                 daily = params["interval"][-1] not in ["m", "h"]
                 d[symbol] = _history_dataframe(data[symbol], daily, adj_timezone)
             else:

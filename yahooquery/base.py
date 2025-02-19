@@ -9,6 +9,7 @@ from datetime import datetime
 from requests_futures.sessions import FuturesSession
 from tqdm import tqdm
 
+# from tests.test_ticker import props
 # first party
 from yahooquery.headless import YahooFinanceHeadless, _has_selenium
 from yahooquery.utils import (
@@ -1028,8 +1029,10 @@ class _YahooFinance(object):
             if isinstance(data, str):
                 self._symbols = current_symbols
                 return data
-            all_data.extend(data) if isinstance(all_data, list) else all_data.update(
-                data
+            (
+                all_data.extend(data)
+                if isinstance(all_data, list)
+                else all_data.update(data)
             )
         self.symbols = current_symbols
         return all_data
@@ -1166,12 +1169,17 @@ class _YahooFinance(object):
                 if isinstance(self.session, FuturesSession)
                 else tqdm(self._symbols, disable=not self.progress)
             )
-            urls = [
-                self.session.get(
-                    url=config["path"].format(**{"symbol": symbol}), params=params
-                )
-                for symbol in ls
-            ]
+
+            urls = []
+            for symbol in ls:
+                try:
+                    v = self.session.get(
+                        url=config["path"].format(**{"symbol": symbol}), params=params
+                    )
+                    urls.append(v)
+                except Exception:
+                    continue
+
         return urls
 
     def _async_requests(self, response_field, urls, params, **kwargs):
